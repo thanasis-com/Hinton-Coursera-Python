@@ -559,7 +559,7 @@ def word_distance(word1, word2, model):
 
 [train_x, train_t, valid_x, valid_t, test_x, test_t, vocab] = load_data(100)
 model = train(1)
-
+#this is a test
 display_nearest_words('day', model, 10)
 
 # Uncomment to save trained model for later use
