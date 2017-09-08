@@ -245,9 +245,36 @@ def d_loss_by_d_model(model, data, wd_coefficient):
     # it just returns a lot of zeros, which is obviously not the correct
     # output. Your job is to replace that by a correct computation.
 
+
+    #forward prop
+
+    #batch size
+    N=data['inputs'].shape[1]
+    #compute the inputs to the hidden neurons
+    z=np.matmul(model['input_to_hid'], data['inputs'])
+    #compute the logistic activations
+    a=logistic(z)
+    #compute the softmax logits
+    softmaxZ=np.matmul(model['hid_to_class'], a)
+    #compute softmax outputs
+    y_hat=np.exp(softmaxZ)/np.sum(np.exp(softmaxZ), axis=0)
+
+    #compute the derivative with respect to the softmax logits
+    d_softmaxZ=y_hat-data['targets']
+
+    #compute the derivative with respect to the softmax weights
+    d_hid_to_class=np.matmul(d_softmaxZ, np.transpose(a))*(1.0/N)+wd_coefficient*model['hid_to_class']
+
+    #compute the derivative with respect to z
+    d_z=np.matmul(np.transpose(model['hid_to_class']), d_softmaxZ)*(a*(1-a))
+
+    #compute the derivative with respect to w
+    d_w=np.matmul(d_z, np.transpose(data['inputs']))*(1.0/N)+wd_coefficient*model['input_to_hid']
+
+
     ret = {}
-    ret['input_to_hid'] = model['input_to_hid'] * 0
-    ret['hid_to_class'] = model['hid_to_class'] * 0
+    ret['input_to_hid'] = d_w
+    ret['hid_to_class'] = d_hid_to_class
 
     return ret
 
@@ -320,6 +347,5 @@ def classification_performance(model, data):
 
 # -----
 # Main program
-a3(wd_coefficient = 0, n_hid = 0, n_iters = 0, learning_rate = 0,
-        momentum_multiplier = 0, do_early_stopping = False, mini_batch_size = 0)
-
+a3(wd_coefficient = 0, n_hid = 37, n_iters = 1000, learning_rate = 0.35,
+        momentum_multiplier = 0.9, do_early_stopping = True, mini_batch_size = 100)
